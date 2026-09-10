@@ -1,0 +1,57 @@
+# ============================================================
+# V1 Configuration — E-Commerce Recommendation System
+# ============================================================
+# All tunable parameters in one place.
+# Nothing should be hardcoded in source files.
+# ============================================================
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  features_dir: "data/features"
+
+  events_file: "events.csv"
+  category_tree_file: "category_tree.csv"
+  item_properties_files:
+    - "item_properties_part1.csv"
+    - "item_properties_part2.csv"
+
+sessionization:
+  # If a user is inactive for longer than this, start a new session
+  gap_minutes: 30
+
+interaction_weights:
+  view: 1
+  addtocart: 3
+  transaction: 5
+
+temporal_split:
+  # First 80% of the time range = train, last 20% = test
+  train_ratio: 0.80
+
+candidate_generation:
+  # Maximum candidates per user from all sources combined
+  pool_size: 150
+  # Number of similar items to retrieve per seed item in Item-CF
+  item_cf_top_n: 20
+  # Number of popular items to always include
+  popularity_top_n: 50
+
+ranking:
+  model: "logistic_regression"
+  # For each positive example, sample this many negatives
+  negative_sample_ratio: 5
+  random_state: 42
+
+evaluation:
+  top_k: 10
+  primary_metric: "ndcg"
+  secondary_metric: "recall"
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+
+mlflow:
+  experiment_name: "recsys_v1"
+  tracking_uri: "mlruns"
