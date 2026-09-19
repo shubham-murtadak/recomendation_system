@@ -82,6 +82,11 @@ resource "aws_iam_role_policy" "s3_read_policy" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "ssm_policy" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_iam_instance_profile" "ec2_profile" {
   name_prefix = "recsys-profile-"
   role        = aws_iam_role.ec2_role.name
@@ -129,9 +134,10 @@ resource "aws_security_group" "recsys_sg" {
 # 4. EC2 Instance
 resource "aws_instance" "recsys_server" {
   ami                  = data.aws_ami.ubuntu.id
-  instance_type        = var.instance_type
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
-  vpc_security_group_ids = [aws_security_group.recsys_sg.id]
+  instance_type               = var.instance_type
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  vpc_security_group_ids      = [aws_security_group.recsys_sg.id]
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size           = 20
