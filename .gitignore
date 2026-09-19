@@ -50,3 +50,13 @@ mlruns/
 *.swp
 store/
 .system_generated/
+
+# Terraform
+infrastructure/terraform.exe
+*.exe
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json

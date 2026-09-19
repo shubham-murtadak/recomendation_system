@@ -11,7 +11,10 @@ Stages:
 """
 
 # Windows OpenMP safety import
-import torch
+try:
+    import torch
+except ImportError:
+    pass
 
 import time
 import os
