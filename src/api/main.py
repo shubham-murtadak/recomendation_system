@@ -98,17 +98,29 @@ async def lifespan(app: FastAPI):
     # 2. Ranking Models
     state["models"] = {}
     if (models_dir / "ranking_model_xgboost.joblib").exists():
-        state["models"]["v2"] = joblib.load(models_dir / "ranking_model_xgboost.joblib")
-        state["models"]["v4"] = state["models"]["v2"]  # V4 uses XGBoost + Stage 3 Re-Ranking
+        try:
+            state["models"]["v2"] = joblib.load(models_dir / "ranking_model_xgboost.joblib")
+            state["models"]["v4"] = state["models"]["v2"]  # V4 uses XGBoost + Stage 3 Re-Ranking
+        except Exception as e:
+            print(f"Warning: Could not load XGBoost: {e}")
     elif (models_dir / "ranking_model.joblib").exists():
-        state["models"]["v2"] = joblib.load(models_dir / "ranking_model.joblib")
-        state["models"]["v4"] = state["models"]["v2"]
+        try:
+            state["models"]["v2"] = joblib.load(models_dir / "ranking_model.joblib")
+            state["models"]["v4"] = state["models"]["v2"]
+        except Exception as e:
+            print(f"Warning: Could not load ranking_model: {e}")
 
     if (models_dir / "ranking_model_logistic_regression.joblib").exists():
-        state["models"]["v1"] = joblib.load(models_dir / "ranking_model_logistic_regression.joblib")
+        try:
+            state["models"]["v1"] = joblib.load(models_dir / "ranking_model_logistic_regression.joblib")
+        except Exception as e:
+            print(f"Warning: Could not load LR model: {e}")
 
     if (models_dir / "ranking_model_deepfm.joblib").exists():
-        state["models"]["v3"] = joblib.load(models_dir / "ranking_model_deepfm.joblib")
+        try:
+            state["models"]["v3"] = joblib.load(models_dir / "ranking_model_deepfm.joblib")
+        except Exception as e:
+            print(f"Notice: DeepFM omitted ({e}). V4 (Production MMR) and V2 (XGBoost) are active.")
 
     # 3. Collaborative Filtering & Popularity
     state["similarity_dict"] = joblib.load(models_dir / "item_similarity.joblib")
