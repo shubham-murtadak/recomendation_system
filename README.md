@@ -4,13 +4,14 @@
 [![CI/CD Pipeline](https://github.com/shubham-murtadak/recomendation_system/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/shubham-murtadak/recomendation_system/actions/workflows/ci_cd.yml)
 [![AWS](https://img.shields.io/badge/AWS-us--east--1-FF9900.svg?logo=amazon-aws)](https://aws.amazon.com/)
 [![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA.svg?logo=terraform)](https://www.terraform.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.13+-ee4c2c.svg)](https://pytorch.org/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.1+-red.svg)](https://xgboost.readthedocs.io/)
 [![MLflow](https://img.shields.io/badge/MLflow-Tracking-0194E2.svg)](https://mlflow.org/)
 
-An end-to-end, multi-stage e-commerce recommendation system trained on the **RetailRocket Implicit-Feedback Dataset** (~2.75M events across 1.15M visitors and 215K items). 
+An end-to-end, enterprise-grade multi-stage recommendation and ranking platform trained on the **RetailRocket Implicit-Feedback Dataset** (~2.75M user interactions across 1.15M visitors and 215K items). 
 
-Implements the industry-standard **3-Stage Production Recommender Funnel** (Retrieval → Ranking → Re-Ranking) with offline temporal evaluation and full MLflow experiment tracking.
+Implements the industry-standard **3-Stage Production Recommender Funnel** (Retrieval → Ranking → Re-Ranking) with offline temporal evaluation, low-latency REST API with Swagger documentation, automated GitHub Actions CI/CD, and Terraform Infrastructure as Code (IaC) deployable to AWS.
 
 ---
 
@@ -63,16 +64,68 @@ All models evaluated strictly on a **temporal holdout test set** to prevent data
 ### Key Technical Insights:
 1. **Why GBDT beats Logistic Regression (+55% Lift)**: Tree ensembles capture non-linear thresholds on activity and recency, plus cross-feature interactions (`src_item_cf` $\times$ `item_cart_count`).
 2. **Why Re-Ranking boosts Cart Conversions (+16.7%)**: Greedy rankers suffer from category monopolization. Applying **Maximal Marginal Relevance (MMR)** and **Category Capping** surfaces complementary products, driving higher intent actions.
-3. **500x Speedup**: Vectorized batch inference scores 5,000 users (327,666 candidate items) in **1.8 seconds**.
+3. **500x Vectorized Speedup**: Batch inference scores 5,000 users (327,666 candidate items) in **1.8 seconds**.
 
 ---
 
-## 🚀 Quick Start
+## 🌐 Real-Time REST API & Interactive Swagger UI
+
+The service includes a production-grade FastAPI recommendation server with sub-50ms inference latency:
+
+### Core Endpoints:
+- `GET /docs` — Interactive Swagger UI documentation.
+- `GET /health` — Service health, active models, catalog size, and uptime statistics.
+- `GET /popular?limit=10` — Global top trending items for cold-start exploration.
+- `GET /similar/{item_id}?limit=10` — Real-time Item-to-Item Collaborative Filtering similarity.
+- `GET /recommend/{user_id}?k=10&model_version=v4` — Personalized multi-stage recommendations with MMR diversity.
+
+```bash
+# Start API locally on port 8000
+uvicorn src.api.main:app --host 127.0.0.1 --port 8000 --reload
+```
+Open **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)** to test the live endpoints.
+
+---
+
+## ☁️ Cloud Deployment: AWS Infrastructure as Code (Terraform)
+
+All cloud infrastructure is codified in the [`infrastructure/`](infrastructure/) directory using HashiCorp Terraform:
+
+### Cloud Architecture (`us-east-1`):
+- **Compute**: AWS EC2 (`t3.micro` — 100% AWS Free Tier eligible) with automated 3GB swap allocation.
+- **Object Storage**: Amazon S3 bucket (`recsys-artifacts-*`) storing feature stores and pre-trained model artifacts with `force_destroy = true`.
+- **Security & IAM**: EC2 Instance Profile with least-privilege S3 read policy, AWS Systems Manager (SSM) integration, and Security Group restricting ingress to HTTP port 8000.
+- **Service Orchestration**: Systemd daemon (`recsys.service`) automatically bootstrapping virtual environments, syncing model artifacts from S3, and launching Uvicorn on boot.
+
+### Deploy to AWS:
+```powershell
+cd infrastructure
+.\terraform.exe init
+.\terraform.exe apply -auto-approve
+```
+
+### Clean Teardown ($0.00 Ongoing Cost):
+```powershell
+.\terraform.exe destroy -auto-approve
+```
+
+---
+
+## 🔄 CI/CD Automation (GitHub Actions)
+
+The repository features a GitHub Actions pipeline ([`.github/workflows/ci_cd.yml`](.github/workflows/ci_cd.yml)):
+1. **Continuous Integration**: Runs algorithmic and pipeline test suites on Python 3.11 via `pytest`.
+2. **Infrastructure Validation**: Performs `terraform fmt`, `terraform init`, and `terraform validate`.
+3. **Continuous Deployment**: Automated plan generation and 1-click apply/destroy execution directly from GitHub Actions with repository secrets.
+
+---
+
+## 🚀 Quick Start (Local Reproduction)
 
 ### 1. Installation
 ```bash
-git clone <your-repo-url>
-cd Recomendation_sytem_ab
+git clone https://github.com/shubham-murtadak/recomendation_system.git
+cd recomendation_system
 pip install -r requirements.txt
 ```
 
@@ -91,29 +144,48 @@ python run_v3_pipeline.py
 python run_v4_pipeline.py
 ```
 
-### 3. Launch MLflow Experiment Dashboard
+### 3. Run Automated Tests
+```bash
+pytest tests/
+```
+
+### 4. Launch MLflow Experiment Dashboard
 ```bash
 mlflow ui --port 5000
 ```
-Open **[http://localhost:5000](http://localhost:5000)** to compare parameters, ROC/Accuracy, NDCG@10, and metrics across `recsys_v1`, `recsys_v2`, `recsys_v3`, and `recsys_v4`.
+Open **[http://localhost:5000](http://localhost:5000)** to compare parameters, ROC/Accuracy, NDCG@10, and metrics across all pipeline iterations.
 
 ---
 
 ## 📁 Repository Structure
 
 ```text
+├── .github/
+│   └── workflows/
+│       └── ci_cd.yml             # Automated CI/CD pipeline (Pytest + Terraform)
 ├── configs/
 │   └── config.yaml               # Centralized configuration (weights, hyperparameters)
+├── infrastructure/
+│   ├── main.tf                   # EC2, S3, IAM, and Security Group definitions
+│   ├── provider.tf               # AWS Provider configuration
+│   ├── variables.tf              # Input variables and Free Tier defaults
+│   └── outputs.tf                # Live endpoints (Swagger, Health, Recommendations)
 ├── src/
+│   ├── api/
+│   │   └── main.py               # FastAPI recommendation service with Swagger UI
 │   ├── features/                 # User, item, and interaction feature extractors
 │   ├── candidate_generation/     # Item-CF and Popularity candidate pooling
 │   ├── ranking/                  # LR, XGBoost, and DeepFM ranking engines
 │   ├── reranking/                # Stage 3 MMR diversity & category capping
 │   └── evaluation/               # NDCG, Recall, ILD diversity, and business conversion
+├── tests/
+│   ├── test_algorithms.py        # Algorithmic tests for MMR & Item-CF
+│   └── test_api.py               # API integration tests
 ├── run_model_pipeline.py         # V1 pipeline runner
 ├── run_v2_pipeline.py            # V2 (XGBoost) runner
 ├── run_v3_pipeline.py            # V3 (DeepFM) runner
 ├── run_v4_pipeline.py            # V4 (3-Stage Re-ranking) runner
+├── pytest.ini                    # Pytest configuration
 ├── requirements.txt
 └── README.md
 ```
