@@ -1,6 +1,9 @@
 # Production E-Commerce Recommendation & Ranking Engine
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![CI/CD Pipeline](https://github.com/shubham-murtadak/recomendation_system/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/shubham-murtadak/recomendation_system/actions/workflows/ci_cd.yml)
+[![AWS](https://img.shields.io/badge/AWS-us--east--1-FF9900.svg?logo=amazon-aws)](https://aws.amazon.com/)
+[![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA.svg?logo=terraform)](https://www.terraform.io/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.13+-ee4c2c.svg)](https://pytorch.org/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.1+-red.svg)](https://xgboost.readthedocs.io/)
 [![MLflow](https://img.shields.io/badge/MLflow-Tracking-0194E2.svg)](https://mlflow.org/)

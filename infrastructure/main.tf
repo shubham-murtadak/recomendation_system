@@ -148,8 +148,8 @@ resource "aws_instance" "recsys_server" {
               apt-get update -y
               apt-get install -y python3-pip python3-venv git awscli curl
 
-              # 2. Add 2GB swap space for safety
-              fallocate -l 2G /swapfile
+              # 2. Add 3GB swap space for safety (1GB RAM + 3GB Swap = 4GB virtual memory)
+              fallocate -l 3G /swapfile
               chmod 600 /swapfile
               mkswap /swapfile
               swapon /swapfile
